@@ -1,0 +1,22 @@
+# Generated VM images (large binary files)
+images/*.qcow2
+images/*.img
+images/*.iso
+images/*.pid
+images/SHA256SUMS
+
+# Downloaded TiKV/PD binaries (large binary files)
+downloads/*.tar.gz
+
+# Go build artifacts
+tests/go.sum
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
