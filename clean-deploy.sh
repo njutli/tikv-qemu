@@ -35,8 +35,12 @@ echo ""
 
 if command -v tiup &>/dev/null; then
     export PATH="${HOME}/.tiup/bin:${PATH}"
+    # Unset proxy so tiup can reach bridge IPs directly
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
     echo ">>> Checking for TiUP-managed cluster '${CLUSTER_NAME}'..."
     if tiup cluster list 2>/dev/null | grep -q "${CLUSTER_NAME}"; then
+        echo ">>> Stopping TiUP cluster '${CLUSTER_NAME}'..."
+        tiup cluster stop "${CLUSTER_NAME}" -y 2>/dev/null || true
         echo ">>> Destroying TiUP cluster '${CLUSTER_NAME}'..."
         tiup cluster destroy "${CLUSTER_NAME}" -y 2>/dev/null || true
         echo "TiUP cluster destroyed."
