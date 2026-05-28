@@ -1,0 +1,21 @@
+global:
+  user: "ubuntu"
+  ssh_port: 22
+  deploy_dir: "/opt/tikv-deploy"
+  data_dir: "/data"
+
+pd_servers:
+  - host: 172.16.0.101
+  - host: 172.16.0.102
+  - host: 172.16.0.103
+
+tikv_servers:
+  - host: 172.16.0.101
+  - host: 172.16.0.102
+  - host: 172.16.0.103
+
+monitoring_servers: []
+
+grafana_servers: []
+
+alertmanager_servers: []

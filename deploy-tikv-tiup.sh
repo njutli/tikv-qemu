@@ -116,6 +116,24 @@ for id in 1 2 3; do
 done
 echo "SSH key authentication configured."
 
+# Add SSH config so TiUP (and other tools) use 'ubuntu' user for VM IPs
+if ! grep -q "Host 172.16.0" ~/.ssh/config 2>/dev/null; then
+    cat >> ~/.ssh/config << 'EOF'
+
+# TiKV QEMU VMs
+Host 172.16.0.*
+    User ubuntu
+    IdentityFile ~/.ssh/id_ed25519
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+EOF
+    echo "SSH config updated."
+fi
+
+# Unset proxy env vars so tiup's gRPC/HTTP client connects directly
+# to 172.16.0.x bridge IPs instead of routing through the proxy.
+unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+
 # ============================================================
 # Step 2: Generate topology file if not exists
 # ============================================================
@@ -157,15 +175,15 @@ fi
 
 echo ""
 echo ">>> Checking cluster prerequisites..."
-if ! tiup cluster check "${TOPOLOGY_FILE}" -i "${SSH_KEY}" 2>&1 | tail -5; then
+if ! tiup cluster check "${TOPOLOGY_FILE}" -i "${SSH_KEY}" --user "${SSH_USER}" 2>&1 | tail -5; then
     echo ""
     echo "WARNING: Cluster check found issues. Attempting auto-fix..."
-    tiup cluster check "${TOPOLOGY_FILE}" --apply -i "${SSH_KEY}" 2>&1 | tail -5 || true
+    tiup cluster check "${TOPOLOGY_FILE}" --apply -i "${SSH_KEY}" --user "${SSH_USER}" 2>&1 | tail -5 || true
 fi
 
 echo ""
 echo ">>> Deploying cluster '${CLUSTER_NAME}' (${TIKV_VERSION})..."
-tiup cluster deploy "${CLUSTER_NAME}" "${TIKV_VERSION}" "${TOPOLOGY_FILE}" -i "${SSH_KEY}" -y
+tiup cluster deploy "${CLUSTER_NAME}" "${TIKV_VERSION}" "${TOPOLOGY_FILE}" -i "${SSH_KEY}" --user "${SSH_USER}" -y
 
 # ============================================================
 # Step 4: Start cluster
@@ -173,7 +191,7 @@ tiup cluster deploy "${CLUSTER_NAME}" "${TIKV_VERSION}" "${TOPOLOGY_FILE}" -i "$
 
 echo ""
 echo ">>> Starting cluster..."
-tiup cluster start "${CLUSTER_NAME}" -i "${SSH_KEY}" --init
+tiup cluster start "${CLUSTER_NAME}" --init
 
 # ============================================================
 # Step 5: Display status
